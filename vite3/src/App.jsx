@@ -1,85 +1,128 @@
-import { useState, useEffect } from 'react'
-import './App.css'
-import {nanoid} from "nanoid"
+import { useState, useEffect } from 'react';
+import './App.css';
+import { nanoid } from 'nanoid';
+
+const genres = [
+  'Драма',
+  'Комедия',
+  'Боевик',
+  'Триллер',
+  'Фантастика',
+  'Ужасы',
+  'Документальный',
+  'Другое'
+];
 
 function App() {
   const [title, setTitle] = useState('');
-  const genreList = {
-    horror: "Ужасы",
-    drama: "Драма",
-    boevik: "Боевик",
-    triller: "Триллер",
-    fantazi: "Фантастика",
-    dokymental: "Документальный",
-    dr: "Другое",
-  }
-  const [genre, setGenre] = useState(Object.values(genreList)[1[0]]);
-  const [rating, setRating] = useState(5); 
+  const [genre, setGenre] = useState(genres[0]);
+  const [rating, setRating] = useState(5);
   const [overview, setOverview] = useState('');
+
+  // Массив фильмов
+  const [movies, setMovies] = useState([]);
+
   const [filterGenre, setFilterGenre] = useState('');
-  const [string, setString] = useState("")
-}
 
-  const Filter = (event) => {
-    setFilterGenre(event.target.value);
-  };
-
-  const deleteMovie = (movieId) => {
-    setMovies(movies.filter(movie => movie.id !== movieId));
-  };
-
-  const AddMovie = () => {
-    const movie = {
-      title: string,
+  //добавление фильма
+  const addMovie = () => {
+    if (!title.trim()) return alert("Введите название");
+    
+    const newMovie = {
       id: nanoid(),
-      date: new Date(),
-      rating: rating,
-      overview: string,
-      movie: movie
-    }
+      title,
+      genre,
+      rating,
+      overview,
+      addedAt: new Date()
+    };
 
+    setMovies([...movies, newMovie]);
+    resetForm();
+  };
+
+  // Очистка формы
   const resetForm = () => {
     setTitle('');
-    setGenre('drama');
+    setGenre(genres[0]);
     setRating(5);
     setOverview('');
   };
 
-    const handleChange = (e) => {
-    setString(e.target.value)
-  }
+  // Удаление фильма
+  const deleteMovie = (id) => {
+    setMovies(movies.filter(movie => movie.id !== id));
+  };
+
+  //чтобы изменений жанра фильтра
+  const handleFilterChange =e=> {
+    setFilterGenre(e.target.value);
+  };
+
+  //фильтр списока фильмов
+  const [filteredMovies, setFilteredMovies] = useState([...movies])
+  const [filterRating, setFilterRating] = useState(0)
+  useEffect(() => {
+    setFilteredMovies((movies) => {
+      let filtered = []
+      if (filterGenre) {
+       filtered =  movies.filter(movie => movie.genre===filterGenre)
+      }
+  
+          if (filterRating == 0) {
+        filtered = filtered.filter(movie => movie.rating===filterRating);
+      }
+      return filteredMovies
+    })
+  }, [filterGenre, filterRating])
 
   return (
-    <div className="movie">
-      <div className="input">
-       <input onChange={handleChange} value={string} type="text" />
-       <select onChange={genreList} name="" id="">
-        {Object.entries(movies).map((el)=>(
-          <option value={el[0]} key={el[0]} >{el[1]}</option>
-        ))}
-       </select>
-       <button onClick={AddMovie}>Добавить фильм</button>
-      </div>
-      <div className='movie__filter'>
-        <span>Краткое описание:</span>
-        <input type="text"
-        value={filterString}
-        onChange={(el)=> setfilterString(el.target.value)} />
-      </div>
-      <div className="movie-list">
-        {filteredBookmarks.map((el) => (
-          <div className='movie' key={el.id}>
-            <input />
-            <span className='movie__title'>{el.title}</span>
-            <span className='movie__genre'>{genreList[el.genre]}</span>
-            <span className='movie__date'>{el.date.toISOString()}</span>
-            <button className='movie__delete' onClick={ () => deleteMovie(el.id)}>x</button>
-          </div>
-        ))}
-        </div>
-    </div>
-      
-  )
-}
+    <div className="app">
+      <form className="add-movie-form">
+        <label htmlFor="title">Название фильма:</label>
+        <input type="text" value={title} onChange={e=>setTitle(e.target.value)} />
+        <label htmlFor="genre">Жанр:</label>
+        <select value={genre} onChange={e => setGenre(e.target.value)}>
+          {genres.map(g => (
+            <option key={g}>{g}</option>
+          ))}
+        </select>
+        
+        <label htmlFor="rating">Оценка:</label>
+        <input type="range" min="0" max="5" step="1" value={rating} onChange={e => setRating(parseInt(e.target.value))}
+        /> ({rating})
+        
+        <label htmlFor="overview">Краткий обзор:</label>
+        <textarea rows="4" cols="50" value={overview} onChange={e => setOverview(e.target.value.substring(0, 500))} />
+        <button type="button" onClick={addMovie}>Добавить фильм</button>
+      </form>
 
-export default App
+      <h2>Список фильмов</h2>
+      <div className="movies-filter">
+        <label htmlFor="filter-genre">Выберите жанр:</label>
+        <select value={filterGenre} onChange={handleFilterChange}>
+          <option value="">Все жанры</option>
+          {genres.map(g => (
+            <option key={g} value={g}>{g}</option>
+          ))}
+        </select>
+         <input type="range" min="0" max="5" step="1" value={filterRating} onChange={e => setFilterRating(parseInt(e.target.value))}
+        /> ({filterRating})
+      </div>
+
+      <ul className="movies-list">
+        {filteredMovies.map(movie => (
+          <li key={movie.id} className="movie-card">
+            <strong>{movie.title}</strong><br/>
+            {Array(Math.round(movie.rating)).fill('★').join('')}<br/>
+            Дата добавления:{new Intl.DateTimeFormat('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' }).format(movie.addedAt)}<br/>
+            Описание :{movie.overview.slice(0, 100)}{movie.overview.length > 100 ? '...' : ''}<br/>
+            <button onClick={() => deleteMovie(movie.id)}>Удалить</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
