@@ -63,18 +63,23 @@ function App() {
   const [filteredMovies, setFilteredMovies] = useState([...movies])
   const [filterRating, setFilterRating] = useState(0)
   useEffect(() => {
-    setFilteredMovies((movies) => {
-      let filtered = []
+    setFilteredMovies(() => {
+      let filtered = movies
+      console.log(filtered);
+      
       if (filterGenre) {
        filtered =  movies.filter(movie => movie.genre===filterGenre)
       }
+      console.log(filtered);
   
-          if (filterRating == 0) {
+          if (filterRating != 0) {
         filtered = filtered.filter(movie => movie.rating===filterRating);
+
       }
-      return filteredMovies
+      console.log(filtered);
+      return filtered
     })
-  }, [filterGenre, filterRating])
+  }, [filterGenre, filterRating, movies])
 
   return (
     <div className="app">
@@ -89,7 +94,7 @@ function App() {
         </select>
         
         <label htmlFor="rating">Оценка:</label>
-        <input type="range" min="0" max="5" step="1" value={rating} onChange={e => setRating(parseInt(e.target.value))}
+        <input type="range" min="1" max="5" step="1" value={rating} onChange={e => setRating(parseInt(e.target.value))}
         /> ({rating})
         
         <label htmlFor="overview">Краткий обзор:</label>
